@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Video Generator - صانع الفيديوهات الذكي</title>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #1e293b;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            border: 1px solid #334155;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+            color: #fff;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #475569;
+            background-color: #0f172a;
+            color: #fff;
+            font-size: 15px;
+            resize: none;
+            box-sizing: border-box;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .duration-box {
+            background-color: #0f172a;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #475569;
+            text-align: center;
+            font-weight: bold;
+            color: #10b981;
+            font-size: 16px;
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px;
+            width: 100%;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* شاشة التحميل والمشغل */
+        .status-section {
+            display: none;
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 1px solid #334155;
+        }
+
+        .progress-bar {
+            width: 100%;
+            background-color: #0f172a;
+            border-radius: 10px;
+            height: 10px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #6366f1, #a855f7);
+            transition: width 0.1s linear;
+        }
+
+        .video-player {
+            display: none;
+            width: 100%;
+            aspect-ratio: 16/9;
+            background-color: #000;
+            border-radius: 10px;
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #475569;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .video-placeholder-text {
+            color: #10b981;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>صانع الفيديوهات بالذكاء الاصطناعي 🤖🎬</h1>
+        <p class="subtitle">اكتب فكرتك ودع الذكاء الاصطناعي يصنع لك فيديو احترافي</p>
+
+        <div class="input-group">
+            <label for="prompt">اكتب محتوى أو فكرة الفيديو:</label>
+            <textarea id="prompt" placeholder="مثال: فيديو وثائقي قصير عن كوكب المريخ بأسلوب سينمائي..."></textarea>
+        </div>
+
+        <div class="input-group">
+            <label>مدة الفيديو المحددة:</label>
+            <div class="duration-box">⏱️ 30 ثانية (جاهز ومثالي لمنصات التيك توك والريلز)</div>
+        </div>
+
+        <button class="btn" id="generateBtn">توليد الفيديو الآن</button>
+
+        <!-- قسم عرض النتيجة والتوليد -->
+        <div class="status-section" id="statusSection">
+            <div id="statusText" style="margin-bottom: 10px; font-weight: 500;">جاري معالجة الفكرة...</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            
+            <div class="video-player" id="videoPlayer" style="display: none;">
+                <span class="video-placeholder-text" id="playerText">▶️ تم توليد الفيديو بنجاح (30 ثانية)</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('generateBtn').addEventListener('click', function() {
+            const promptText = document.getElementById('prompt').value.trim();
+            
+            if (promptText === "") {
+                alert("الرجاء كتابة محتوى الفيديو أولاً!");
+                return;
+            }
+
+            const statusSection = document.getElementById('statusSection');
+            const statusText = document.getElementById('statusText');
+            const progressFill = document.getElementById('progressFill');
+            const videoPlayer = document.getElementById('videoPlayer');
+            const playerText = document.getElementById('playerText');
+
+            // إعادة تعيين العناصر
+            statusSection.style.display = 'block';
+            videoPlayer.style.display = 'none';
+            progressFill.style.width = '0%';
+            
+            let width = 0;
+            statusText.innerText = "🤖 الذكاء الاصطناعي يحلل النص ويجهز المشاهد...";
+            
+            // محاكاة شريط التحميل الخاص بصناعة الفيديو
+            const interval = setInterval(function() {
+                if (width >= 100) {
+                    clearInterval(interval);
+                    statusText.innerText = "✨ اكتمل التوليد بنجاح!";
+                    videoPlayer.style.display = 'flex';
+                    playerText.innerText = `▶️ جاهز للعرض: فيديو مدته 30 ثانية عن (${promptText.substring(0, 20)}...)`;
+                } else {
+                    width += 2;
+                    progressFill.style.width = width + '%';
+                    
+                    if (width === 40) {
+                        statusText.innerText = "🎨 جاري تصميم الجرافيك وإضافة المؤثرات الصوتية...";
+                    }
+                    if (width === 80) {
+                        statusText.innerText = "⏳ جاري الرندرة النهائية وتحديد وقت الفيديو (30 ثانية)...";
+                    }
+                }
+            }, 100); // سرعة التحميل
+        });
+    </script>
+
+</body>
+</html>
